@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vddownloader"
+version = "1.0.0"
+description = "Video Downloader - Scarica video da YouTube e social media"
+readme = "README.md"
+authors = [{name = "Zakaria", email = "your@email.com"}]
+license = {text = "MIT"}
+keywords = ["video", "downloader", "youtube", "instagram", "tiktok", "social"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "yt-dlp>=2024.1.1",
+    "tkinter-tooltip",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+]
+
+[project.scripts]
+vddownloader = "vddownloader.app:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/video-downloader"
+Repository = "https://github.com/YOUR_USERNAME/video-downloader"
+Issues = "https://github.com/YOUR_USERNAME/video-downloader/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vddownloader*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
