@@ -24,3 +24,28 @@ jobs:
       with:
         name: VideoDownloader
         path: dist/VideoDownloader.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/download-artifact@v4
+      with:
+        name: VideoDownloader
+        path: .
+    
+    - uses: softprops/action-gh-release@v1
+      with:
+        files: VideoDownloader.exe
+        name: Video Downloader v1.0
+        body: |
+          Primo rilascio per Windows.
+          
+          Esegui il file .exe per avviare l'app.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
