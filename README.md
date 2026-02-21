@@ -23,8 +23,20 @@ Un'applicazione per scaricare video da YouTube e tutti i principali social media
 ## 🖥️ Anteprima
 
 ```
-<img width="650" height="587" alt="Schermata da 2026-02-18 17-41-08" src="https://github.com/user-attachments/assets/c5573dbf-d838-4584-8546-61ac13bda692" />
-
+┌─────────────────────────────────────┐
+│        📥 Video Downloader          │
+├─────────────────────────────────────┤
+│  Incolla URL del video:             │
+│  [_________________________]        │
+│                                     │
+│  Formato: [mp4 ▼]  Qualità: [best]  │
+│                                     │
+│  Salva in: [/home/user/Downloads]   │
+│                                     │
+│        ⬇️ SCARICA VIDEO             │
+│                                     │
+│  [████████████░░░░░░░░░░░░░░░] 75%  │
+└─────────────────────────────────────┘
 ```
 
 ## 📦 Installazione
