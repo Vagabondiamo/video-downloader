@@ -36,11 +36,13 @@ jobs:
         pip install yt-dlp pyinstaller
     
     - name: Build executable
+      shell: bash
       run: |
         pyinstaller --onefile --windowed --clean vddownloader/app.py
         ls -la dist/
     
     - name: Rename artifact
+      shell: bash
       run: |
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
           mv dist/app.exe "VideoDownloader-${{ matrix.name }}.exe"
