@@ -1,4 +1,4 @@
-name: Build for All Platforms
+name: Build Windows EXE
 
 on:
   push:
@@ -6,75 +6,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: pip install yt-dlp pyinstaller
-      - run: pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
-      - run: mv dist/VideoDownloader.exe VideoDownloader-Windows.exe
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows
-          path: VideoDownloader-Windows.exe
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: pip install yt-dlp pyinstaller
-      - run: pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
-      - run: mv dist/VideoDownloader VideoDownloader-macOS && chmod +x VideoDownloader-macOS
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos
-          path: VideoDownloader-macos
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: pip install yt-dlp pyinstaller
-      - run: pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
-      - run: mv dist/VideoDownloader VideoDownloader-Linux && chmod +x VideoDownloader-Linux
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux
-          path: VideoDownloader-Linux
-
-  release:
-    needs: [build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: false
-      - run: ls -la
-      - run: ls -la artifacts/
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/windows/*.exe
-            artifacts/macos/*
-            artifacts/linux/*
-          name: Video Downloader v1.0
-          body: |
-            ## Download
-            - Windows: VideoDownloader-Windows.exe
-            - macOS: VideoDownloader-macos
-            - Linux: VideoDownloader-Linux
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - run: pip install yt-dlp pyinstaller
+    
+    - run: pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: VideoDownloader
+        path: dist/VideoDownloader.exe
