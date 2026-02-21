@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build EXE for All Platforms
 
 on:
   push:
@@ -7,7 +7,20 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            ext: .exe
+          - os: macos-latest
+            name: macOS
+            ext: ''
+          - os: ubuntu-latest
+            name: Linux
+            ext: ''
+    
+    runs-on: ${{ matrix.os }}
     
     steps:
     - name: Checkout code
@@ -24,10 +37,59 @@ jobs:
     
     - name: Build executable
       run: |
-        pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
+        pyinstaller --onefile --windowed --clean vddownloader/app.py
+        ls -la dist/
+    
+    - name: Rename artifact
+      run: |
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          mv dist/app.exe "VideoDownloader-${{ matrix.name }}.exe"
+          echo "artifact_name=VideoDownloader-${{ matrix.name }}.exe" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          mv dist/app "VideoDownloader-${{ matrix.name }}"
+          chmod +x "VideoDownloader-${{ matrix.name }}"
+          echo "artifact_name=VideoDownloader-${{ matrix.name }}" >> $GITHUB_ENV
+        else
+          mv dist/app "VideoDownloader-${{ matrix.name }}"
+          chmod +x "VideoDownloader-${{ matrix.name }}"
+          echo "artifact_name=VideoDownloader-${{ matrix.name }}" >> $GITHUB_ENV
+        fi
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: VideoDownloader-exe
-        path: dist/VideoDownloader.exe
+        name: ${{ matrix.name }}-exe
+        path: ${{ env.artifact_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/*/*
+        generate_release_notes: true
+        name: Video Downloader v1.0
+        body: |
+          ## Download
+          - Windows: Scarica VideoDownloader-Windows.exe
+          - macOS: Scarica VideoDownloader-macOS (rendi eseguibile con chmod +x)
+          - Linux: Scarica VideoDownloader-Linux (rendi eseguibile con chmod +x)
+          
+          ## Requisiti
+          - Python 3.11+ installato
+          - yt-dlp (installato automaticamente al primo avvio)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
