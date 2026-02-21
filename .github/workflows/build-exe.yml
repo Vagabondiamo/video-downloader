@@ -12,13 +12,10 @@ jobs:
         include:
           - os: windows-latest
             name: Windows
-            pkg_ext: exe
           - os: macos-latest
             name: macOS
-            pkg_ext: dmg
           - os: ubuntu-latest
             name: Linux
-            pkg_ext: deb
     
     runs-on: ${{ matrix.os }}
     
@@ -35,78 +32,37 @@ jobs:
       run: |
         pip install yt-dlp pyinstaller
     
-    # Linux: Install fpm for .deb
-    - name: Install fpm (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        gem install fpm
-    
-    # macOS: Install create-dmg
-    - name: Install create-dmg (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install create-dmg
-    
-    - name: Build executable
-      shell: bash
-      run: |
-        pyinstaller --onefile --windowed --clean vddownloader/app.py
-    
-    # Linux: Create .deb
-    - name: Create Debian package
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        mkdir -p dist/VideoDownloader/usr/bin
-        cp dist/app dist/VideoDownloader/usr/bin/VideoDownloader
-        chmod +x dist/VideoDownloader/usr/bin/VideoDownloader
-        fpm -t deb -n videodownloader -v 1.0 -p VideoDownloader-Linux.deb -C dist/VideoDownloader usr/bin
-        ls -la *.deb
-    
-    # macOS: Create .dmg
-    - name: Create macOS app and .dmg
-      if: matrix.os == 'macos-latest'
-      run: |
-        # Create app bundle
-        mkdir -p "VideoDownloader.app/Contents/MacOS"
-        cp dist/app "VideoDownloader.app/Contents/MacOS/VideoDownloader"
-        chmod +x "VideoDownloader.app/Contents/MacOS/VideoDownloader"
-        # Create Info.plist
-        cat > "VideoDownloader.app/Contents/Info.plist" << 'EOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>VideoDownloader</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.videodownloader.app</string>
-            <key>CFBundleName</key>
-            <string>VideoDownloader</string>
-            <key>CFBundleVersion</key>
-            <string>1.0</string>
-        </dict>
-        </plist>
-        EOF
-        # Create DMG
-        create-dmg --volname "VideoDownloader" --window-pos 200 120 --app-drop-link 425 178 "VideoDownloader-macOS.dmg" "VideoDownloader.app"
-        ls -la *.dmg
-    
-    # Windows: Rename to .exe
-    - name: Rename Windows executable
+    - name: Build executable (Windows)
       if: matrix.os == 'windows-latest'
       shell: bash
       run: |
-        mv dist/app.exe VideoDownloader-Windows.exe
-        ls -la *.exe
+        pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
+        mv dist/VideoDownloader.exe VideoDownloader-Windows.exe
+    
+    - name: Build executable (macOS)
+      if: matrix.os == 'macos-latest'
+      shell: bash
+      run: |
+        pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
+        mv dist/VideoDownloader VideoDownloader-macOS
+        chmod +x VideoDownloader-macOS
+    
+    - name: Build executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        pyinstaller --onefile --windowed --name VideoDownloader --clean vddownloader/app.py
+        mv dist/VideoDownloader VideoDownloader-Linux
+        chmod +x VideoDownloader-Linux
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.name }}-package
+        name: VideoDownloader-${{ matrix.name }}
         path: |
-          *.deb
-          *.dmg
-          *.exe
+          VideoDownloader-*.exe
+          VideoDownloader-macOS
+          VideoDownloader-Linux
 
   release:
     needs: build
@@ -122,27 +78,38 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
+        merge-multiple: true
     
-    - name: List artifacts
-      run: |
-        find artifacts -type f -name "*.exe" -o -name "*.deb" -o -name "*.dmg"
+    - name: List files
+      run: ls -la
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          artifacts/*/*.exe
-          artifacts/*/*.deb
-          artifacts/*/*.dmg
+          VideoDownloader-Windows.exe
+          VideoDownloader-macOS
+          VideoDownloader-Linux
         name: Video Downloader v1.0
         body: |
           ## Download
-          - **Windows**: VideoDownloader-Windows.exe
-          - **macOS**: VideoDownloader-macOS.dmg (doppio click per installare)
-          - **Linux**: VideoDownloader-Linux.deb (installare con `sudo dpkg -i`)
+          - **Windows**: VideoDownloader-Windows.exe (doppio click per eseguire)
+          - **macOS**: VideoDownloader-macOS (apri Terminale e scrivi `chmod +x` poi trascina il file)
+          - **Linux**: VideoDownloader-Linux (apri terminale e scrivi `chmod +x` poi trascina il file)
+          
+          ## Istruzioni
+          ### macOS/Linux
+          Apri il Terminale, scrivi:
+          ```bash
+          chmod +x "percorso/del/file"
+          ```
+          Poi eseguilo con:
+          ```bash
+          "./percorso/del/file"
+          ```
           
           ## Requisiti
           - Python 3.11+ installato
-          - yt-dlp (installato automaticamente al primo avvio)
+          - yt-dlp (installato automaticamente se mancante)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
