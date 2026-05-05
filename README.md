@@ -118,4 +118,4 @@ MIT License - vedi [LICENSE](LICENSE) per dettagli.
 
 ---
 
-⭐ Se ti piace questo progetma, lasci una stella!
+⭐ Se ti piace questo progetto, lasci una stella!
